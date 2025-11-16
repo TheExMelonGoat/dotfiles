@@ -1,7 +1,7 @@
 # Hyprland Version 0.50.0
 
 **Packages needed:**
-`swaybg wl-clipboard waybar wofi foot mako grim slurp wf-recorder light yad thunar geany viewnior imagemagick xorg-xwayland xdg-desktop-portal-wlr python-pywal alacritty rofi pulsemixer pulseaudio`
+`swaybg wl-clipboard waybar wofi foot mako grim slurp wf-recorder light yad thunar geany viewnior imagemagick xorg-xwayland xdg-desktop-portal-wlr python-pywal alacritty rofi pulsemixer pulseaudio xdg-user-dirs`
 
 **AUR Packages:**
 `wlroots pastel`
