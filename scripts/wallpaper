@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+## Set Wallpaper in Hyprland
+
+WALLPAPER='/home/fox/.config/hypr/wallpapers/wallpaper.png'
+
+swaybg --output '*' --mode fill --image "$WALLPAPER"

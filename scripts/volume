@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+
+iDIR="$HOME/.config/hypr/mako/icons"
+notify_cmd='notify-send -h string:x-canonical-private-synchronous:sys-notify-volume -u low'
+
+# Get default sink
+get_sink() {
+    pactl get-default-sink
+}
+
+# Get current volume (integer)
+get_volume() {
+    pactl get-sink-volume "$(get_sink)" | awk '{print $5}' | tr -d '%'
+}
+
+# Get mute status
+get_mute() {
+    pactl get-sink-mute "$(get_sink)" | awk '{print $2}'
+}
+
+# Get icon
+get_icon() {
+    current=$(get_volume)
+    if [[ "$current" -eq 0 ]] || [[ "$(get_mute)" == "yes" ]]; then
+        icon="$iDIR/volume-mute.png"
+    elif [[ "$current" -le 30 ]]; then
+        icon="$iDIR/volume-low.png"
+    elif [[ "$current" -le 60 ]]; then
+        icon="$iDIR/volume-mid.png"
+    else
+        icon="$iDIR/volume-high.png"
+    fi
+}
+
+# Notify user
+notify_user() {
+    ${notify_cmd} -i "$icon" "Volume : $(get_volume)%"
+}
+
+# Cap volume to 150%
+cap_volume() {
+    current=$(get_volume)
+    if [[ "$current" -gt 150 ]]; then
+        pactl set-sink-volume "$(get_sink)" 150%
+    fi
+}
+
+# Increase Volume
+inc_volume() {
+    pactl set-sink-mute "$(get_sink)" 0
+    pactl set-sink-volume "$(get_sink)" +5%
+    cap_volume
+    get_icon && notify_user
+}
+
+# Decrease Volume
+dec_volume() {
+    pactl set-sink-mute "$(get_sink)" 0
+    pactl set-sink-volume "$(get_sink)" -5%
+    get_icon && notify_user
+}
+
+# Toggle Mute
+toggle_mute() {
+    pactl set-sink-mute "$(get_sink)" toggle
+    if [[ "$(get_mute)" == "yes" ]]; then
+        ${notify_cmd} -i "$iDIR/volume-mute.png" "Mute"
+    else
+        get_icon && ${notify_cmd} -i "$icon" "Unmute"
+    fi
+}
+
+# Toggle Mic
+toggle_mic() {
+    mic="$(pactl get-default-source)"
+    if [[ "$(pactl get-source-mute "$mic" | awk '{print $2}')" == "yes" ]]; then
+        pactl set-source-mute "$mic" 0
+        ${notify_cmd} -i "$iDIR/microphone.png" "Microphone Switched ON"
+    else
+        pactl set-source-mute "$mic" 1
+        ${notify_cmd} -i "$iDIR/microphone-mute.png" "Microphone Switched OFF"
+    fi
+}
+inc_loop() {
+    pressed=false
+
+    sudo libinput debug-events --device /dev/input/event3 | \
+    while read -r line; do
+        if echo "$line" | grep -q "KEY_VOLUMEUP (115) pressed"; then
+            pressed=true
+            (
+                while $pressed; do
+                    pactl set-sink-mute "$(get_sink)" 0
+                    pactl set-sink-volume "$(get_sink)" +5%
+                    cap_volume
+                    get_icon && notify_user
+                    sleep 0.1
+                done
+            ) &
+            loop_pid=$!
+        elif echo "$line" | grep -q "KEY_VOLUMEUP (115) released"; then
+            pressed=false
+            kill "$loop_pid" 2>/dev/null
+            break
+       fi
+    done
+}
+
+# Holdable volume decrease
+ dec_loop() {
+    pressed=false
+
+    sudo libinput debug-events --device /dev/input/event3 | \
+    while read -r line; do
+        if echo "$line" | grep -q "KEY_VOLUMEDOWN (114) pressed"; then
+            pressed=true
+            (
+                while $pressed; do
+                    pactl set-sink-mute "$(get_sink)" 0
+                    pactl set-sink-volume "$(get_sink)" -5%
+                    cap_volume
+                    get_icon && notify_user
+                    sleep 0.1
+                done
+            ) &
+            loop_pid=$!
+        elif echo "$line" | grep -q "KEY_VOLUMEDOWN (114) released"; then
+            pressed=false
+            kill "$loop_pid" 2>/dev/null
+            break
+        fi
+    done
+}
+
+
+
+
+
+# Execute accordingly
+case "$1" in
+    --get) get_volume ;;
+    --inc) inc_volume ;;
+    --dec) dec_volume ;;
+    --toggle) toggle_mute ;;
+    --toggle-mic) toggle_mic ;;
+    --inc-loop) inc_loop ;;
+    --dec-loop) dec_loop ;;
+    *) echo "$(get_volume)%" ;;
+esac

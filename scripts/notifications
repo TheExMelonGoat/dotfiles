@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+## launch mako with alt config
+
+CONFIG="$HOME/.config/hypr/mako/config"
+
+if [[ ! `pidof mako` ]]; then
+ dbus-daemon --session --address=unix:path=$XDG_RUNTIME_DIR/bus --fork | mako --config ${CONFIG}
+fi

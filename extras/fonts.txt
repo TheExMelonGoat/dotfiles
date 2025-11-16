@@ -1,0 +1,14 @@
+FiraCode Nerd Font,FiraCode Nerd Font Med
+DejaVu Sans,DejaVu Sans Light
+DejaVu Sans
+Noto Sans,Noto Sans Medium
+Noto Sans Mono
+Symbols Nerd Font
+JetBrainsMono Nerd Font,JetBrainsMono NF
+JetBrains Mono
+Noto Sans
+Iosevka
+Fira Code,Fira Code Light
+Noto Color Emoji
+Unifont
+JetBrainsMonoNL Nerd Font Propo,JetBrainsMonoNL NFP
